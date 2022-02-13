@@ -20,8 +20,11 @@ class Database():
         conexion = psycopg2.connect(self.host)
         cursor = conexion.cursor()
         try:
-            cursor.execute('')
+            cursor.execute('CREATE TABLE match (ID SERIAL PRIMARY KEY, PRIVATE_KEY VARCHAR(100), PUBLIC_KEY VARCHAR(100), ITER INTEGER);')
+            cursor.execute('CREATE TABLE error (ID SERIAL PRIMARY KEY, PRIVATE_KEY VARCHAR(100), PUBLIC_KEY VARCHAR(100), ITER INTEGER, ERRORMESSAGE VARCHAR(50));')
+
         except psycopg2.ProgrammingError:
             print("the table exist")
+            
+    
 
-db = Database()
