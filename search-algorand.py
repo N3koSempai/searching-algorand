@@ -61,9 +61,10 @@ class Algobot():
             if res['account']['amount'] > 0 or res['account']['total-assets-opted-in'] > 0:
                 amount = res['account']['amount']
                 assets = res['account']['total-assets-opted-in']
-                return ('ok', {'direction': (self.private_key, self.address ), 'amount': amount, 'assets': assets})
+                #acuracy is used for show the level of verification (if amount and assets is > 0)
+                return ('ok', {'acuracy': 'good','direction': (self.private_key, self.address ), 'amount': amount, 'assets': assets})
             
-            return ('ok', (self.private_key, self.address ))
+            return ('ok', {'acuracy': 'bad','direction': (self.private_key, self.address )})
         else:
             return ('error_not_handler', response.status_code)
 

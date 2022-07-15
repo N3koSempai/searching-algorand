@@ -1,30 +1,69 @@
-#module for manage connection to the postgresql database
-import psycopg2
+#module for manage connection to the sqlite3 database
+import sqlite3
 import os
 
-host = os.environ.get("DATABASE_URL")
 
+#change to the actual directory
 
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
+class DB():
+    """This class make calls to a sqlite3 database for save matches and errors"""
+    def __init__(self):
+        self.con = sqlite3.connect("database.db")
 
-class Database():
-    """Class for manage the database I/O"""
-
-    def __init__(self, host):
-        self.host = host
-
-
-    def create_table(self):
-        """create the database if not exist"""
-
-        conexion = psycopg2.connect(self.host)
-        cursor = conexion.cursor()
+    def start(self):
+        """Method for initialize the database and the tables"""
         try:
-            cursor.execute('CREATE TABLE match (ID SERIAL PRIMARY KEY, PRIVATE_KEY VARCHAR(100), PUBLIC_KEY VARCHAR(100), ITER INTEGER);')
-            cursor.execute('CREATE TABLE error (ID SERIAL PRIMARY KEY, PRIVATE_KEY VARCHAR(100), PUBLIC_KEY VARCHAR(100), ITER INTEGER, ERRORMESSAGE VARCHAR(50));')
+            self.con.execute("""create table Match (
+                id_match integer primary key autoincrement,
+                status_code integer,
+                acuracy text,
+                private text,
+                public text,
+                amount integer,
+                assets integer
+            )""")
+        
+            self.con.execute("""create table Error (
+                id_err integer primary key autoincrement,
+                status_code integer,
+                private text,
+                public text,
+                message text
+            )""")
 
-        except psycopg2.ProgrammingError:
-            print("the table exist")
-            
+            return True
+        except sqlite3.OperationalError:
+            return True
+                
+        except Exception as err:
+            return False
     
+    def added_match(self, status_code, acuracy, private, public, amount = 0, assets = 0):
+        """method for insert data into the tables"""
+        try:
+            self.con.execute("insert into Match (status_code, acuracy, private, public, amount, assets) values (?,?,?,?,?,?)", \
+                (status_code, acuracy, private, public, amount, assets))
+            self.con.commit()
+            return True
+        except Exception as err:
+            return False
+    
+    def added_error(self, status_code, message , private = 'not have', public = 'not have' ):
+        """method for save a logs of errors"""
+        try:
+            self.con.execute("insert into Error (status_code,  private, public, message) values (?,?,?,?)", \
+                (status_code,  private, public, message))
+            self.con.commit()
+            return True
+        except Exception as err:
+            return False
 
+
+
+
+db = DB()
+db.start()
+db.added_match(200,'good','asdasdsadas23135','23123sadrfdf')
+db.added_error(404,  'error' )
