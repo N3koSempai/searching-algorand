@@ -61,9 +61,3 @@ class DB():
             return False
 
 
-
-
-db = DB()
-db.start()
-db.added_match(200,'good','asdasdsadas23135','23123sadrfdf')
-db.added_error(404,  'error' )
