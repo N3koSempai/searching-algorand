@@ -9,51 +9,65 @@ import re
 class Algobot():
 
     def __init__(self):
+        """set the initial variable"""
         self.address = ''
         self.private_key = ''
-        self.url_explorer = 'https://algoindexer.algoexplorerapi.io/v2/accounts/'
+        self.url = ''
 
     def generate_algorand_keypair(self):
+        """generate a private_key and public adress and set the url with the adress"""
         self.private_key, self.address = account.generate_account()
+        self.url = ("https://algoindexer.algoexplorerapi.io/v2/accounts/" + self.address)
 
-    def check(self, iter):
-        #request info from the api
-        response = (requests.get(self.url_explorer + self.address))
-        # take only the atribut amount
-        if response.status_code != 404 and response.content != None:
-            try:
-                rs = json.loads(response.content)
-                amount = rs['account']['amount']
-                #check if the address have money and save in a file called match.txt
-                file = open('match.txt', 'a')
-                if amount > 0:
-                    file.write('address:' + self.address + ' private_key ' + self.private_key)
-                    return 1
-            except:
-                print(rs)
-                return 'error'
+    def manager(self, iter):
+        """The main method managed the iteration ,call other methods and save the result in the BD calling a Bd module"""
+        result = self.check_method_online()
+        print(result)
+        #print(self.url)
 
 
+    def check_method_online(self):
+        """This method use the api online for make requests and test the diferents results ."""
+        self.generate_algorand_keypair()
+
+        #call to api online
+        response = requests.get(self.url)
+        if response.content != None:
+            res = json.loads(response.content)
         else:
-            print('nothing in the ', iter, ' iteration')
-            return 0
+            return ('error', 'not content', 'status_code:' + response.status_code)
+        
+        #manage a not found adress result
+        if response.status_code == 404:
+            #load the json only if is not empty
+
+            
+
+            try:
+                #try to identify the problem for report
+                if res['message'] == 'Not Found':
+                    return ('error', 'not found_error')
+
+                    #need regex for more acuracy response
+                else:
+                    return ('error', {'undeterminate for now': res})
+
+            except Exception as err:
+                return ('error', err)
+
+        elif response.status_code == 200:
+            
+            #test if the account have more than 0 algo or assets
+            if res['account']['amount'] > 0 or res['account']['total-assets-opted-in'] > 0:
+                amount = res['account']['amount']
+                assets = res['account']['total-assets-opted-in']
+                return ('ok', {'direction': (self.private_key, self.address ), 'amount': amount, 'assets': assets})
+            
+            return ('ok', (self.private_key, self.address ))
+        else:
+            return ('error_not_handler', response.status_code)
+
+
 
 algo = Algobot()
-try:
-    Max = int(input("write the maximun iteration(10 by default): ") or '10')
-except:
-    print('you have an eror, only write digits')
-match = 0
-error = 0
-for i in range(0, Max):
-    algo.generate_algorand_keypair()
-    result = algo.check(i)
-    if result == 'error':
-        error = error + 1
-        continue
-    match = match + result
-print("\n ITERATION FINISH: \n MATCH: ", match, '\n ERROR: ', error)
-
-
-
-
+algo.manager(1)
