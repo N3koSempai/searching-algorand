@@ -11,7 +11,8 @@ class DB():
     """This class make calls to a sqlite3 database for save matches and errors"""
     def __init__(self):
         self.con = sqlite3.connect("database.db")
-
+        #asignet cursor is necesary for sqlite call SELECT
+        self.cur = self.con.cursor()
     def start(self):
         """Method for initialize the database and the tables"""
         try:
@@ -31,6 +32,14 @@ class DB():
                 private text,
                 public text,
                 message text
+            )""")
+
+            self.con.execute("""create table Statistics (
+                id_session integer primary key autoincrement,
+                match integer ,
+                not_found integer,
+                error integer,
+                critical_error integer   
             )""")
 
             return True
@@ -60,4 +69,16 @@ class DB():
         except Exception as err:
             return False
 
+    def added_std(self, match = 0, not_found = 0,error = 0, critical_error = 0 ):
+        """method for save sttistics info and make reports"""
+
+        
+        try:
+            
+            self.con.execute("insert into Statistics (match, not_found, error, critical_error) values (?,?,?,?)", \
+                (match, not_found,error,critical_error))
+            self.con.commit()
+            return True
+        except Exception as err:
+            return False
 
