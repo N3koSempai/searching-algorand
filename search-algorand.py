@@ -32,6 +32,11 @@ class Algobot():
         """The main method managed the iteration ,call other methods and save the result in the BD calling a Bd module"""
         result = self.check_method_online()
         
+        # vaiable for statistics
+        temp_match = 0
+        temp_nf = 0
+        temp_error = 0
+        temp_critical_error = 0
         #how much iterations 
         if method == 'online':
             for i in range(0,iter):
@@ -50,32 +55,43 @@ class Algobot():
 
                     elif result[1]['acuracy'] == 'bad':
                         self.db.added_match(200, result[1]['acuracy'], result[1]['direction'][0],result[1]['direction'][1])
-
+                    temp_match = temp_match + 1
                 elif result[0] == 'error_not_handler':
                     try:
                         self.db.added_error(result[1], result[2])
                     except Exception as err:
                         self.db.added_error('999', 'internal error when try to save error not handler: {miss}'.format(miss = err) )
-
+                    temp_error = temp_error + 1
                 elif result[0] == 'error':
                     if result[1] == 'not_content':
                         print('Critical error, not content found in the response of the api online \n Are you connected to internet?')
                         print('\n status code: ', result[2])
-                    
+                        temp_critical_error = temp_critical_error + 1
+                        #remove this
+                        self.db.added_error(900, result[2])
+                        
                     elif result[1] == 'Not Found':
                         #normal error when the account is new
                         #100 is for new address
                         # not make nothing for now
-                        pass
+                        temp_nf = temp_nf + 1
+                        # 
+                        self.db.added_error(900, result[2])
                     
                     elif result[1] == 'undeterminate for now':
                         #900 for unidentified error
-                        self.db.added_error(900, result[2])
 
+                        # !!Atention!! . THIS CONDITIONAL WORK WITH ERROR. MAKE THE SAME OF 'NOT FOUND' COINDITIONAL
+                        
 
-
-
-
+                        # disable for make less petition to the database. now dont save the not found results, only stdistics save
+                        #print(self.db.added_error(900, result[2]['message']))
+                        
+                        temp_nf = temp_nf + 1
+            #send stadistics to the database when the loop is finished for better performance
+            
+            print(self.db.added_std(temp_match,temp_nf,temp_error,temp_critical_error))
+            
     def check_method_online(self):
         """This method use the api online for make requests and test the diferents results ."""
         self.generate_algorand_keypair()
@@ -122,4 +138,4 @@ class Algobot():
 
 
 algo = Algobot()
-algo.manager(1, 'online')
+algo.manager(10, 'online')
