@@ -89,8 +89,8 @@ class Algobot():
                         
                         temp_nf = temp_nf + 1
             #send stadistics to the database when the loop is finished for better performance
-            
             print(self.db.added_std(temp_match,temp_nf,temp_error,temp_critical_error))
+            self.report(temp_nf,temp_match,temp_error,temp_critical_error)
             
     def check_method_online(self):
         """This method use the api online for make requests and test the diferents results ."""
@@ -135,7 +135,10 @@ class Algobot():
             
             return ('error_not_handler', response.status_code, res)
 
-
+    def report(self,temp_nf, temp_match, temp_error,temp_critical_error):
+        print(""" Final Report For This session
+                    {0} , {1} , {2}, {3}
+            """.format( temp_nf, temp_match, temp_error,temp_critical_error))
 
 algo = Algobot()
 algo.manager(10, 'online')
