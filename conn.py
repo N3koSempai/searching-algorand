@@ -69,16 +69,24 @@ class DB():
         except Exception as err:
             return False
 
-    def added_std(self, match = 0, not_found = 0,error = 0, critical_error = 0 ):
+    def added_std(self, upgrade, match = 0, not_found = 0,error = 0, critical_error = 0 ):
         """method for save sttistics info and make reports"""
 
         
         try:
-            
-            self.con.execute("insert into Statistics (match, not_found, error, critical_error) values (?,?,?,?)", \
-                (match, not_found,error,critical_error))
-            self.con.commit()
+            if upgrade == False:
+                self.con.execute("insert into Statistics (match, not_found, error, critical_error) values (?,?,?,?)", \
+                    (match, not_found,error,critical_error))
+                self.con.commit()
+            elif upgrade == True:
+
+                self.con.execute("update Statistics SET match = ?, not_found = ?, error = ?, critical_error = ? ORDER BY  id_session DESC LIMIT 1", \
+                    (match, not_found,error,critical_error))
+                self.con.commit()
             return True
         except Exception as err:
-            return False
+            return (False, err)
+
+
+
 
