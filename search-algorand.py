@@ -166,5 +166,12 @@ class Algobot():
  ==>     Internal_errors: {3}
             """.format( temp_nf, temp_match, temp_error,temp_critical_error))
 
-algo = Algobot()
-algo.manager(192, 'online')
+if __name__ == "__main__":
+    print("set the iter number")
+    try:
+        itern = int(input("max iter :  "))
+    except:
+        print("write only integer numbers")
+
+    algo = Algobot()
+    algo.manager(itern, 'online')
