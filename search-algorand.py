@@ -1,49 +1,49 @@
-from algosdk import account
+
+from methods import online
+
 import threading
-import requests
-import json
+
 import re
 import conn
 import report
 
-class Algobot():
 
-    def __init__(self):
+
+class Coinbot():
+
+    def __init__(self, selection):
         """set the initial variable"""
-        self.address = ''
-        self.private_key = ''
-        self.url = ''
         #initialize the database
         self.db = conn.DB()
         self.db.start()
         self.report = report.Report()
+        self.online = online.Online_method()
+        if selection == "Algorand":
+            from generators import algorand
+            self.crypto = algorand.Algobot()
 
 
-    def generate_algorand_keypair(self):
-        """generate a private_key and public adress and set the url with the adress"""
-        self.private_key, self.address = account.generate_account()
-        try:
 
-            self.url = ("https://algoindexer.algoexplorerapi.io/v2/accounts/" + self.address)
-        except Exception as err:
-            #change this save the error in the database and show in the screen
-            print("erro", err)
+
 
     def manager(self, iter, method):
         """The main method managed the iteration ,call other methods and save the result in the BD calling a Bd module"""
-        result = self.check_method_online()
+        #result = self.check_method_online()
 
         # vaiable for statistics
         temp_match = 0
         temp_nf = 0
         temp_error = 0
         temp_critical_error = 0
-        #how much iterations 
+        #how much iterations
+
         if method == 'online':
             for i in range(0,iter):
                 
                 #make call to the api online
-                result = self.check_method_online()
+                keys = self.crypto.generate_keypair()
+
+                result = self.online.check_method_online(keys)
                 
                 
                 # the answer is ok
@@ -114,48 +114,7 @@ class Algobot():
                 self.db.added_std(True, temp_match,temp_nf,temp_error,temp_critical_error)
                 self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
             
-    def check_method_online(self):
-        """This method use the api online for make requests and test the diferents results ."""
-        self.generate_algorand_keypair()
 
-        #call to api online
-        response = requests.get(self.url)
-        if response.content != None:
-            res = json.loads(response.content)
-        else:
-            return ('error', 'not content', response.status_code)
-        
-        #manage a not found adress result
-        if response.status_code == 404:
-            #load the json only if is not empty
-
-            
-
-            try:
-                #try to identify the problem for report
-                if res['message'] == 'Not Found':
-                    return ('error', 'not found_error')
-
-                    #need regex for more acuracy response
-                else:
-                    return ('error', 'undeterminate for now', res)
-
-            except Exception as err:
-                return ('error', err)
-
-        elif response.status_code == 200:
-            
-            #test if the account have more than 0 algo or assets
-            if res['account']['amount'] > 0 or res['account']['total-assets-opted-in'] > 0:
-                amount = res['account']['amount']
-                assets = res['account']['total-assets-opted-in']
-                #acuracy is used for show the level of verification (if amount and assets is > 0)
-                return ('ok', {'acuracy':'good','direction': (self.private_key, self.address ), 'amount': amount, 'assets': assets})
-            
-            return ('ok', {'acuracy':'bad','direction': (self.private_key, self.address )})
-        else:
-            
-            return ('error_not_handler', response.status_code, res)
 
 
 
@@ -167,5 +126,5 @@ if __name__ == "__main__":
     except:
         print("write only integer numbers")
 
-    algo = Algobot()
-    algo.manager(itern, 'online')
+    Coin = Coinbot('Algorand')
+    Coin.manager(itern, 'online')
