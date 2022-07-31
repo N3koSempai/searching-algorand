@@ -4,7 +4,7 @@ import requests
 import json
 import re
 import conn
-
+import report
 
 class Algobot():
 
@@ -16,6 +16,7 @@ class Algobot():
         #initialize the database
         self.db = conn.DB()
         self.db.start()
+        self.report = report.Report()
 
 
     def generate_algorand_keypair(self):
@@ -26,7 +27,7 @@ class Algobot():
             self.url = ("https://algoindexer.algoexplorerapi.io/v2/accounts/" + self.address)
         except Exception as err:
             #change this save the error in the database and show in the screen
-            pass
+            print("erro", err)
 
     def manager(self, iter, method):
         """The main method managed the iteration ,call other methods and save the result in the BD calling a Bd module"""
@@ -95,23 +96,23 @@ class Algobot():
                 if i == 100:
                     print("excute1")
                     self.db.added_std(False, temp_match,temp_nf,temp_error,temp_critical_error)
-                    self.report(temp_nf,temp_match,temp_error,temp_critical_error)
+                    self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
 
                     #more that 100 need update the session , not create a new session
                 elif i % 100 == 0 and i > 100:
 
                     print(self.db.added_std(True, temp_match,temp_nf,temp_error,temp_critical_error))
-                    self.report(temp_nf,temp_match,temp_error,temp_critical_error)
+                    self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
 
 
             #send stadistics to the database when the loop is finished and iteration < 100
             if iter < 100:
                 self.db.added_std(False, temp_match,temp_nf,temp_error,temp_critical_error)
-                self.report(temp_nf,temp_match,temp_error,temp_critical_error)
+                self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
 
             elif iter > 100 and (iter - 1) % 100 != 0:
                 self.db.added_std(True, temp_match,temp_nf,temp_error,temp_critical_error)
-                self.report(temp_nf,temp_match,temp_error,temp_critical_error)
+                self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
             
     def check_method_online(self):
         """This method use the api online for make requests and test the diferents results ."""
@@ -156,15 +157,8 @@ class Algobot():
             
             return ('error_not_handler', response.status_code, res)
 
-    def report(self,temp_nf, temp_match, temp_error,temp_critical_error):
-        print(""" |/|==================================|\|
- |/|   Final Report For This session: |\|
- |/|                                  |\|
- ==>     not found:  {0}
- ==>     match: {1}
- ==>     errors: {2}
- ==>     Internal_errors: {3}
-            """.format( temp_nf, temp_match, temp_error,temp_critical_error))
+
+
 
 if __name__ == "__main__":
     print("set the iter number")
