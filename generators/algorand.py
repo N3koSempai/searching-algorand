@@ -11,7 +11,7 @@ class Algobot():
         self.private_key = ''
         self.url = ''
 
-    def generate_algorand_keypair(self):
+    def generate_keypair(self):
         """generate a private_key and public adress and set the url with the adress"""
         self.private_key, self.address = account.generate_account()
         try:
