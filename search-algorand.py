@@ -1,48 +1,53 @@
-from algosdk import account
+
+from methods import online
+
 import threading
-import requests
-import json
+
 import re
 import conn
+import con_postg
+import report
 
 
-class Algobot():
 
-    def __init__(self):
+class Coinbot():
+
+    def __init__(self, select_coin, select_db):
         """set the initial variable"""
-        self.address = ''
-        self.private_key = ''
-        self.url = ''
         #initialize the database
-        self.db = conn.DB()
+        if select_db == 'postgresql':
+            self.db = con_postg.DB()
+        else:
+            self.db = conn.DB()
         self.db.start()
+        self.report = report.Report()
+        self.online = online.Online_method()
+        if select_coin == "Algorand":
+            from generators import algorand
+            self.crypto = algorand.Algobot()
 
 
-    def generate_algorand_keypair(self):
-        """generate a private_key and public adress and set the url with the adress"""
-        self.private_key, self.address = account.generate_account()
-        try:
 
-            self.url = ("https://algoindexer.algoexplorerapi.io/v2/accounts/" + self.address)
-        except Exception as err:
-            #change this save the error in the database and show in the screen
-            pass
+
 
     def manager(self, iter, method):
         """The main method managed the iteration ,call other methods and save the result in the BD calling a Bd module"""
-        result = self.check_method_online()
+        #result = self.check_method_online()
 
         # vaiable for statistics
         temp_match = 0
         temp_nf = 0
         temp_error = 0
         temp_critical_error = 0
-        #how much iterations 
+        #how much iterations
+
         if method == 'online':
             for i in range(0,iter):
                 
                 #make call to the api online
-                result = self.check_method_online()
+                keys = self.crypto.generate_keypair()
+
+                result = self.online.check_method_online(keys)
                 
                 
                 # the answer is ok
@@ -95,76 +100,35 @@ class Algobot():
                 if i == 100:
                     print("excute1")
                     self.db.added_std(False, temp_match,temp_nf,temp_error,temp_critical_error)
-                    self.report(temp_nf,temp_match,temp_error,temp_critical_error)
+                    self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
 
                     #more that 100 need update the session , not create a new session
                 elif i % 100 == 0 and i > 100:
 
                     print(self.db.added_std(True, temp_match,temp_nf,temp_error,temp_critical_error))
-                    self.report(temp_nf,temp_match,temp_error,temp_critical_error)
+                    self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
 
 
             #send stadistics to the database when the loop is finished and iteration < 100
             if iter < 100:
                 self.db.added_std(False, temp_match,temp_nf,temp_error,temp_critical_error)
-                self.report(temp_nf,temp_match,temp_error,temp_critical_error)
+                self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
 
             elif iter > 100 and (iter - 1) % 100 != 0:
                 self.db.added_std(True, temp_match,temp_nf,temp_error,temp_critical_error)
-                self.report(temp_nf,temp_match,temp_error,temp_critical_error)
-            
-    def check_method_online(self):
-        """This method use the api online for make requests and test the diferents results ."""
-        self.generate_algorand_keypair()
-
-        #call to api online
-        response = requests.get(self.url)
-        if response.content != None:
-            res = json.loads(response.content)
-        else:
-            return ('error', 'not content', response.status_code)
-        
-        #manage a not found adress result
-        if response.status_code == 404:
-            #load the json only if is not empty
-
+                self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
             
 
-            try:
-                #try to identify the problem for report
-                if res['message'] == 'Not Found':
-                    return ('error', 'not found_error')
 
-                    #need regex for more acuracy response
-                else:
-                    return ('error', 'undeterminate for now', res)
 
-            except Exception as err:
-                return ('error', err)
 
-        elif response.status_code == 200:
-            
-            #test if the account have more than 0 algo or assets
-            if res['account']['amount'] > 0 or res['account']['total-assets-opted-in'] > 0:
-                amount = res['account']['amount']
-                assets = res['account']['total-assets-opted-in']
-                #acuracy is used for show the level of verification (if amount and assets is > 0)
-                return ('ok', {'acuracy':'good','direction': (self.private_key, self.address ), 'amount': amount, 'assets': assets})
-            
-            return ('ok', {'acuracy':'bad','direction': (self.private_key, self.address )})
-        else:
-            
-            return ('error_not_handler', response.status_code, res)
 
-    def report(self,temp_nf, temp_match, temp_error,temp_critical_error):
-        print(""" |/|==================================|\|
- |/|   Final Report For This session: |\|
- |/|                                  |\|
- ==>     not found:  {0}
- ==>     match: {1}
- ==>     errors: {2}
- ==>     Internal_errors: {3}
-            """.format( temp_nf, temp_match, temp_error,temp_critical_error))
+if __name__ == "__main__":
+    print("set the iter number")
+    try:
+        itern = int(input("max iter :  "))
+    except:
+        print("write only integer numbers")
 
-algo = Algobot()
-algo.manager(192, 'online')
+    Coin = Coinbot('Algorand','postgresql')
+    Coin.manager(itern, 'online')
