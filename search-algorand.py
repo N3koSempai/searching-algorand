@@ -5,20 +5,24 @@ import threading
 
 import re
 import conn
+import con_postg
 import report
 
 
 
 class Coinbot():
 
-    def __init__(self, selection):
+    def __init__(self, select_coin, select_db):
         """set the initial variable"""
         #initialize the database
-        self.db = conn.DB()
+        if select_db == 'postgresql':
+            self.db = con_postg.DB()
+        else:
+            self.db = conn.DB()
         self.db.start()
         self.report = report.Report()
         self.online = online.Online_method()
-        if selection == "Algorand":
+        if select_coin == "Algorand":
             from generators import algorand
             self.crypto = algorand.Algobot()
 
@@ -126,5 +130,5 @@ if __name__ == "__main__":
     except:
         print("write only integer numbers")
 
-    Coin = Coinbot('Algorand')
+    Coin = Coinbot('Algorand','postgresql')
     Coin.manager(itern, 'online')
