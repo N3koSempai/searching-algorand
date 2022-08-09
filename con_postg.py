@@ -13,7 +13,7 @@ class DB():
         #    'user': os.environ['USER'],
         #    'password':os.environ['PASSWORD']}
 
-        self.herokuDB = os.environ('DATABASE_URL')
+        self.herokuDB = os.environ['DATABASE_URL']
 
 
 
