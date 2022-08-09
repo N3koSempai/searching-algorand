@@ -8,21 +8,18 @@ class DB():
 
 
     def __init__(self):
-        self.user_db = {'host':os.environ['HOST'],
-            'database':os.environ['DATABASE'],
-            'user': os.environ['USER'],
-            'password':os.environ['PASSWORD']}
+        #self.user_db = {'host':os.environ['HOST'],
+        #    'database':os.environ['DATABASE'],
+        #    'user': os.environ['USER'],
+        #    'password':os.environ['PASSWORD']}
 
+        self.herokuDB = os.environ('DATABASE_URL')
 
 
 
 
     def start(self):
-        xconnect = psycopg2.connect(
-            host = self.user_db['host'],
-            database = self.user_db['database'],
-            user = self.user_db['user'],
-            password = self.user_db['password'])
+        xconnect = psycopg2.connect(self.herokuDB)
         cur = xconnect.cursor()
 
 
@@ -67,11 +64,11 @@ class DB():
     def added_match(self, status_code, acuracy, private, public, amount = 0, assets = 0):
         """method for insert data into the tables"""
 
-        xconnect = psycopg2.connect(
-            host = self.user_db['host'],
-            database = self.user_db['database'],
-            user = self.user_db['user'],
-            password = self.user_db['password'])
+        xconnect = psycopg2.connect(self.herokuDB)
+
+
+
+
         cur = xconnect.cursor()
 
 
@@ -85,12 +82,7 @@ class DB():
 
     def added_error(self, status_code, message , private = 'not have', public = 'not have' ):
         """method for save a logs of errors"""
-        xconnect = psycopg2.connect(
-            host = self.user_db['host'],
-            database = self.user_db['database'],
-            user = self.user_db['user'],
-            password = self.user_db['password'])
-        cur = xconnect.cursor()
+        xconnect = psycopg2.connect(self.herokuDB)
 
         try:
             match = """insert into Error (status_code,  private, public, message) values (%s,%s,%s,%s);"""
@@ -109,11 +101,11 @@ class DB():
     def added_std(self, upgrade, match = 0, not_found = 0,error = 0, critical_error = 0 ):
         """method for save sttistics info and make reports"""
 
-        xconnect = psycopg2.connect(
-            host = self.user_db['host'],
-            database = self.user_db['database'],
-            user = self.user_db['user'],
-            password = self.user_db['password'])
+        xconnect = psycopg2.connect(self.herokuDB )
+
+
+
+
         cur = xconnect.cursor()
 
         try:
