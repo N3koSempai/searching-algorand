@@ -51,7 +51,7 @@ class DB():
                 );""")
 
             xconnect.commit()
-            xconection.close()
+            xconnect.close()
 
             return True
 
@@ -75,7 +75,6 @@ class DB():
         match = """INSERT INTO match(status_code, acuracy, private, public, amount, assets) VALUES (%s,%s,%s,%s,%s,%s);"""
         insert = (status_code, acuracy, private, public, amount, assets)
         clio = cur.execute(match, insert)
-        print('here')
         xconnect.commit()
         xconnect.close()
         return clio
@@ -83,7 +82,7 @@ class DB():
     def added_error(self, status_code, message , private = 'not have', public = 'not have' ):
         """method for save a logs of errors"""
         xconnect = psycopg2.connect(self.herokuDB)
-
+        cur = xconnect.cursor()
         try:
             match = """insert into Error (status_code,  private, public, message) values (%s,%s,%s,%s);"""
             insert =  (status_code,  private, public, message)
