@@ -14,13 +14,13 @@ class Algobot():
     def generate_keypair(self):
         """generate a private_key and public adress and set the url with the adress"""
         self.private_key, self.address = account.generate_account()
-        print (self.private_key)
+
         try:
 
             self.url = ("https://algoindexer.algoexplorerapi.io/v2/accounts/" + self.address)
         except Exception as err:
             #change this save the error in the database and show in the screen
             print("erro", err)
-            return False
+            return (False, err)
         return (self.private_key, self.address,self.url)
 
