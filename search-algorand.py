@@ -46,6 +46,9 @@ class Coinbot():
                 
                 #make call to the api online
                 keys = self.crypto.generate_keypair()
+                if keys[0] == False:
+                    print('critical error')
+                    exit()
 
                 result = self.online.check_method_online(keys)
                 
@@ -98,7 +101,7 @@ class Coinbot():
                     # Area for insert new logs
                     # determine if is the first 100 request (stadistics is save after 100 request)
                 if i == 100:
-                    print("excute1")
+
                     self.db.added_std(False, temp_match,temp_nf,temp_error,temp_critical_error)
                     self.report.reporting(temp_nf,temp_match,temp_error,temp_critical_error)
 
@@ -124,11 +127,74 @@ class Coinbot():
 
 
 if __name__ == "__main__":
-    print("set the iter number")
-    try:
-        itern = int(input("max iter :  "))
-    except:
-        print("write only integer numbers")
+
+    # options for get results in database or
+    options = []
+    print('Select your action \n 1. search \n 2. get report \n 3. get match \n 4. get_error')
+    x = int(input('write: '))
+    if x == 1:
+        options.append(1)
+    elif x == 2:
+        options.append(2)
+
+    elif x == 3:
+        options.append(3)
+
+    elif x == 4:
+        options.append(4)
+    else:
+        print('error')
+        exit()
+
+    if options[0] == 1:
+        print('Write the number of your objetive blockchain \n 1. Algorand ')
+        x = int(input('number: '))
+        if x == 1:
+            options.append('Algorand')
+        else:
+            print('error')
+            exit()
+
+        print('Write the number of your database \n 1. postgresql \n 2. sqlite3')
+        x = int(input('number: '))
+        if x == 1:
+            options.append('postgresql')
+        elif x == 2:
+            options.append('sqlite')
+        else:
+            print('error')
+            exit()
+
+        print('Write the number of your method \n 1. Online')
+        x = int(input('number: '))
+        if x == 1:
+            options.append('online')
+        else:
+            print('error')
+            exit()
+
+        print("set the iter number")
+        try:
+            itern = int(input("max iter :  "))
+        except:
+            print("write only integer numbers")
+
+        Coin = Coinbot(options[1],options[2])
+        print(options)
+        Coin.manager(itern, options[3])
+        exit()
+
 
     Coin = Coinbot('Algorand','postgresql')
-    Coin.manager(itern, 'online')
+
+
+    if options[0] == 2:
+        print(Coin.db.getter_report())
+        exit()
+    elif options[0] == 3:
+        print(Coin.db.getter_match())
+        exit()
+    elif options[0] == 4:
+        print(Coin.db.getter_error())
+        exit()
+
