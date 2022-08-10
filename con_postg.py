@@ -156,14 +156,26 @@ class DB():
             xconnect.close()
             return(False , err)
 
+    def getter_match(self):
+        xconnect = psycopg2.connect(self.herokuDB )
+        cur = xconnect.cursor()
 
+        try:
+            cur.execute("""select * from match""")
+
+            total = cur.fetchall()
+            print(total)
+            xconnect.close()
+        except Exception as err:
+            xconnect.close()
+            return(False , err)
 
 
 if __name__ == '__main__':
     db = DB()
     db.start()
-    #db.added_match(202, 'good', 'sdasdasdsdad', 'asdadasdasd', 2213123, 123)
-    #db.added_std(False,100,3,1,1)
-    #print(db.getter_report())
-
+    db.added_match(202, 'good', 'sdasdasdsdad', 'asdadasdasd', 2213123, 123)
+    db.added_std(False,100,3,1,1)
+    print(db.getter_report())
+    db.getter_match()
 
