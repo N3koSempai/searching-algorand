@@ -58,6 +58,7 @@ class DB():
         except psycopg2.errors.DuplicateTable:
             return True
         except Exception as err:
+            xconnect.close()
             return (False, err)
 
 
@@ -91,6 +92,7 @@ class DB():
             xconnect.close()
             return True
         except Exception as err:
+            xconnect.close()
             return False
 
 
@@ -124,12 +126,44 @@ class DB():
                 xconnect.close()
             return True
         except Exception as err:
+            xconnect.close()
             return (False, err)
+
+    def getter_report(self):
+        xconnect = psycopg2.connect(self.herokuDB )
+        cur = xconnect.cursor()
+        list_report = []
+        try:
+            cur.execute("""select  SUM (match) AS total_match from Statistics """)
+
+            list_report.append(cur.fetchone()[0])
+
+
+            cur.execute("""select SUM (not_found) as nt from Statistics""")
+            list_report.append(cur.fetchone()[0])
+
+
+            cur.execute("""select SUM (error) as error from Statistics""")
+            list_report.append(cur.fetchone()[0])
+
+            cur.execute("""select SUM (criticalerror) as cerror from Statistics""")
+            list_report.append(cur.fetchone()[0])
+
+            xconnect.close()
+            return (True, list_report)
+
+        except Exception as err:
+            xconnect.close()
+            return(False , err)
+
 
 
 
 if __name__ == '__main__':
     db = DB()
     db.start()
-    #db.added_std(False,1,1,1,1)
+    #db.added_match(202, 'good', 'sdasdasdsdad', 'asdadasdasd', 2213123, 123)
+    #db.added_std(False,100,3,1,1)
+    #print(db.getter_report())
+
 
